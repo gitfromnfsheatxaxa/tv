@@ -1,0 +1,65 @@
+/* HomePage Styles */
+
+.home-page {
+  position: relative;
+  min-height: 100vh;
+  background-color: var(--color-bg-primary);
+}
+
+/* Main Content */
+.home-content {
+  position: relative;
+  z-index: 1;
+  padding-top: 70px; /* Offset for fixed navbar */
+}
+
+/* Movie Rows Container */
+.home-rows {
+  padding-bottom: var(--space-8);
+}
+
+/* Hover Preview */
+.hover-preview {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  z-index: 50;
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  min-width: 250px;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--color-bg-tertiary);
+  animation: fadeIn var(--transition-fast) ease;
+}
+
+.hover-preview-content h4 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.hover-preview-content p {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-1);
+}
+
+.hover-preview-content .match-text {
+  color: var(--color-success);
+  font-weight: var(--font-semibold);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hover-preview {
+    position: static;
+    margin: var(--space-4);
+    min-width: auto;
+  }
+
+  .home-rows {
+    padding-bottom: var(--space-6);
+  }
+}

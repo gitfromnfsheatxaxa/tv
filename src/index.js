@@ -1,17 +1,24 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
+import './styles/global.css';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
 
+// Import Norigin Spatial Navigation
+import { SpatialNavigation } from '@noriginmedia/norigin-spatial-navigation';
+
+// Initialize Spatial Navigation Service
+// This must be done before rendering any focusable components
+SpatialNavigation.init({
+  debug: false, // Set to true for debugging navigation
+  verticalGutter: 10, // Vertical spacing between focusable elements
+  horizontalGutter: 10, // Horizontal spacing between focusable elements
+  restrictToParent: false, // Allow navigation outside parent containers
+});
+
+// Create root and render app
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();

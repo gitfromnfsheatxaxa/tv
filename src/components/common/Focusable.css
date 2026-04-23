@@ -1,0 +1,27 @@
+/* Focusable Component Styles */
+
+.focusable {
+  position: relative;
+  transition: var(--focus-transition);
+  transform-origin: center center;
+}
+
+/* Default focus state */
+.focusable:focus {
+  transform: scale(var(--focus-scale));
+  box-shadow: var(--focus-ring);
+  outline: none;
+  z-index: 10;
+}
+
+/* Disabled state */
+.focusable-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.focusable-disabled:focus {
+  transform: none;
+  box-shadow: none;
+}
