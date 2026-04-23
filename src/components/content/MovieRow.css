@@ -1,103 +1,33 @@
-/* MovieRow Component Styles */
-
-.movie-row {
-  position: relative;
-  padding: var(--space-4) var(--space-6);
-  margin-bottom: var(--space-4);
+/* Content Row Styles */
+.content-row {
+  margin-bottom: 37px;
 }
 
-/* Header */
-.movie-row-header {
-  margin-bottom: var(--space-3);
+.row-title {
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+  font-family: 'Segoe UI', sans-serif;
+  margin-bottom: 20px;
+  padding-left: 10px;
 }
 
-.movie-row-title {
-  font-size: var(--text-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-text-primary);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
-  display: inline-block;
-}
-
-.movie-row-title:focus {
-  box-shadow: var(--focus-ring);
-}
-
-/* Scroll Controls */
-.movie-row-scroll {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 60px;
-  height: 100%;
-  background: linear-gradient(90deg, var(--color-bg-primary) 0%, transparent 100%);
-  color: var(--color-text-primary);
-  opacity: 0;
-  transition: opacity var(--transition-base);
-  cursor: pointer;
-}
-
-.movie-row:hover .movie-row-scroll-left,
-.movie-row:focus-within .movie-row-scroll-left {
-  opacity: 1;
-}
-
-.movie-row-scroll-right {
-  right: 0;
-  background: linear-gradient(270deg, var(--color-bg-primary) 0%, transparent 100%);
-}
-
-.movie-row:hover .movie-row-scroll-right,
-.movie-row:focus-within .movie-row-scroll-right {
-  opacity: 1;
-}
-
-.movie-row-scroll svg {
-  width: 32px;
-  height: 32px;
-}
-
-.movie-row-scroll:focus {
-  box-shadow: var(--focus-ring);
-}
-
-/* Container */
-.movie-row-container {
-  display: flex;
-  gap: var(--space-2);
+.row-scrolling-wrapper {
   overflow-x: auto;
   overflow-y: hidden;
-  padding: var(--space-2) 0;
-  scroll-behavior: smooth;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
 }
 
-.movie-row-container::-webkit-scrollbar {
-  display: none;
+.row-scrolling-wrapper::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
-/* Focus within row */
-.movie-row-container:focus-within {
-  outline: none;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .movie-row {
-    padding: var(--space-3) var(--space-4);
-  }
-
-  .movie-row-title {
-    font-size: var(--text-base);
-  }
-
-  .movie-row-scroll {
-    width: 40px;
-  }
+.row-scrolling-content {
+  display: flex;
+  gap: 22px;
+  padding: 10px;
+  white-space: normal;
 }

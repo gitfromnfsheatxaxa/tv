@@ -7,12 +7,13 @@ import App from './App';
 import { SpatialNavigation } from '@noriginmedia/norigin-spatial-navigation';
 
 // Initialize Spatial Navigation Service
-// This must be done before rendering any focusable components
+// Following Norigin's recommended initialization pattern
 SpatialNavigation.init({
-  debug: false, // Set to true for debugging navigation
-  verticalGutter: 10, // Vertical spacing between focusable elements
-  horizontalGutter: 10, // Horizontal spacing between focusable elements
-  restrictToParent: false, // Allow navigation outside parent containers
+  debug: false,
+  verticalGutter: 10,
+  horizontalGutter: 10,
+  restrictToParent: false,
+  distanceCalculationMethod: 'center',
 });
 
 // Create root and render app

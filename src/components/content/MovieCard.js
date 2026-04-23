@@ -1,72 +1,40 @@
 import React from 'react';
-import Focusable from '../common/Focusable';
+import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import './MovieCard.css';
 
-/**
- * MovieCard Component
- * 
- * Individual movie card component for displaying movie thumbnails.
- * Supports focus states for TV navigation.
- */
-function MovieCard({ id, movie, onSelect, onHover, onLeave }) {
-  const { title, image, rating, year, match } = movie;
-
-  const handleFocus = () => {
-    if (onHover) {
-      onHover(movie);
-    }
-  };
-
-  const handleBlur = () => {
-    if (onLeave) {
-      onLeave();
-    }
-  };
+function MovieCard({ movie, index, onEnterPress, onFocus }) {
+  const { ref, focused } = useFocusable({
+    onEnterPress: () => {
+      if (onEnterPress) {
+        onEnterPress(movie);
+      }
+    },
+    onFocus: (layout) => {
+      if (onFocus) {
+        onFocus({ x: layout.x - 100, y: layout.y });
+      }
+    },
+    extraProps: {
+      title: movie.title,
+      color: movie.color,
+    },
+  });
 
   return (
-    <Focusable
-      id={id}
-      role="button"
-      aria-label={`View details for ${title}`}
-      className="movie-card"
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      onSelect={() => onSelect && onSelect(movie)}
-    >
-      {/* Poster Image */}
-      <div className="movie-poster">
-        <img
-          src={image}
-          alt={title}
-          className="movie-poster-image"
-          loading="lazy"
-        />
-
-        {/* Match Percentage Badge */}
-        {match && (
-          <span className="movie-match">{match}% Match</span>
-        )}
-
-        {/* Rating Badge */}
-        {rating && (
-          <span className="movie-rating-badge">{rating}</span>
+    <div ref={ref} className={`movie-card ${focused ? 'focused' : ''}`}>
+      <div className="movie-image" style={{ backgroundColor: movie.color || '#333' }}>
+        {movie.image ? (
+          <img src={movie.image} alt={movie.title} className="movie-poster" />
+        ) : (
+          <span className="movie-placeholder">{index + 1}</span>
         )}
       </div>
-
-      {/* Card Info (shown on focus) */}
       <div className="movie-info">
-        <h3 className="movie-title">{title}</h3>
-        <div className="movie-meta">
-          {year && <span className="movie-year">{year}</span>}
-          {match && (
-            <>
-              <span className="movie-separator">•</span>
-              <span className="movie-match-text">{match}% Match</span>
-            </>
-          )}
-        </div>
+        <h4 className="movie-title">{movie.title}</h4>
+        {movie.rating && <span className="movie-rating">{movie.rating}</span>}
+        {movie.match && <span className="movie-match">{movie.match}% Match</span>}
       </div>
-    </Focusable>
+    </div>
   );
 }
 

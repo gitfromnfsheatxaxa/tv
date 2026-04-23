@@ -1,0 +1,135 @@
+/* App Container Layout - Following Norigin Demo Pattern */
+.app-container {
+  background-color: #221c35;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+/* Main Content Area */
+.main-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 52px 40px 40px 40px;
+}
+
+.app-title {
+  color: white;
+  font-size: 48px;
+  font-weight: 600;
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 37px;
+}
+
+/* Featured Section */
+.featured-section {
+  margin-bottom: 37px;
+}
+
+.featured-card {
+  height: 282px;
+  width: 100%;
+  max-width: 1074px;
+  border-radius: 7px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 40px;
+  box-sizing: border-box;
+}
+
+.featured-title {
+  color: white;
+  font-size: 27px;
+  font-weight: 400;
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0 0 10px 0;
+}
+
+.featured-subtitle {
+  color: #cccccc;
+  font-size: 16px;
+  font-weight: 400;
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+}
+
+/* Rows Container */
+.rows-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Side Menu (Right Side) */
+.side-menu {
+  width: 246px;
+  background-color: #362C56;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 37px;
+  flex-shrink: 0;
+}
+
+.side-menu.focused {
+  background-color: #4e4181;
+}
+
+.menu-logo {
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+  font-family: 'Segoe UI', sans-serif;
+  margin-bottom: 51px;
+  padding: 0 20px;
+  text-align: center;
+}
+
+.menu-item {
+  width: 171px;
+  height: 51px;
+  background-color: #b056ed;
+  border-color: white;
+  border-style: solid;
+  border-width: 0;
+  box-sizing: border-box;
+  border-radius: 7px;
+  margin-bottom: 37px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-width 0.2s ease;
+}
+
+.menu-item.focused {
+  border-width: 6px;
+}
+
+.menu-item-label {
+  color: white;
+  font-size: 16px;
+  font-weight: 400;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.menu-item svg {
+  stroke: white;
+}
+
+.menu-spacer {
+  flex: 1;
+}
