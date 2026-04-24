@@ -6,8 +6,10 @@
   justify-content: center;
   border-radius: var(--radius-md);
   font-weight: var(--font-semibold);
-  transition: var(--focus-transition);
+  transition: var(--focus-transition), background-color 0.2s ease;
   white-space: nowrap;
+  outline: none;
+  cursor: pointer;
 }
 
 .button-content {
@@ -22,9 +24,13 @@
   color: var(--color-text-primary);
 }
 
-.button-primary:focus {
+/* .focused set by Norigin; :focus-visible as browser fallback */
+.button-primary:focus-visible,
+.button-primary.focused {
   background-color: var(--color-primary-hover);
-  box-shadow: var(--focus-ring);
+  box-shadow: var(--focus-ring), 0 8px 30px rgba(229, 9, 20, 0.5);
+  transform: scale(1.03);
+  outline: none;
 }
 
 /* Secondary Button */
@@ -34,9 +40,12 @@
   backdrop-filter: blur(10px);
 }
 
-.button-secondary:focus {
+.button-secondary:focus-visible,
+.button-secondary.focused {
   background-color: rgba(255, 255, 255, 0.3);
   box-shadow: var(--focus-ring);
+  transform: scale(1.03);
+  outline: none;
 }
 
 /* Button Sizes */

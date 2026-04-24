@@ -1,101 +1,58 @@
-import React, { useState, useCallback } from 'react';
-import NavBar from '../components/layout/NavBar';
-import FeaturedHero from '../components/content/FeaturedHero';
+import React from 'react';
+import { useFocusable, FocusContext } from '@noriginmedia/norigin-spatial-navigation';
 import MovieRow from '../components/content/MovieRow';
-import { getFeaturedContent, getCategories } from '../services/mockDataService';
+import FeaturedHero from '../components/content/FeaturedHero';
+import { getCategories, getFeaturedContent } from '../services/mockDataService';
 import './HomePage.css';
 
-/**
- * HomePage Component
- * 
- * Main landing page for the TV app featuring:
- * - Featured content hero
- * - Multiple movie/TV show rows
- * - Navigation bar
- */
-function HomePage() {
-  const [selectedMovie, setSelectedMovie] = useState(null);
-  const [hoveredMovie, setHoveredMovie] = useState(null);
-
-  const featuredContent = getFeaturedContent();
+function HomePage({ onRegisterFocus }) {
+  const { ref, focusKey } = useFocusable({ 
+    focusKey: 'HOME-CONTENT',
+    trackChildren: true,
+  });
+  
   const categories = getCategories();
+  const featuredContent = getFeaturedContent();
 
-  const handlePlayMovie = useCallback((movie) => {
-    console.log('Playing movie:', movie.title);
-    setSelectedMovie(movie);
-    // In production, this would start video playback
+  const handleMovieSelect = React.useCallback((movie) => {
+    console.log('Movie selected:', movie.title);
   }, []);
 
-  const handleMoreInfo = useCallback((movie) => {
-    console.log('More info for:', movie.title);
-    setSelectedMovie(movie);
-    // In production, this would open a movie detail modal
-  }, []);
-
-  const handleSelectMovie = useCallback((movie) => {
-    console.log('Selected movie:', movie.title);
-    setSelectedMovie(movie);
-  }, []);
-
-  const handleMovieHover = useCallback((movie) => {
-    setHoveredMovie(movie);
-  }, []);
-
-  const handleSearchToggle = useCallback(() => {
-    console.log('Toggle search');
-    // In production, this would open the search modal
-  }, []);
-
-  const handleNavigate = useCallback((item) => {
-    console.log('Navigating to:', item.path);
-    // In production, this would handle navigation
-  }, []);
+  const onRowFocus = React.useCallback(
+    ({ y }) => {
+      ref.current?.scrollTo({ top: y, behavior: 'smooth' });
+    },
+    [ref]
+  );
 
   return (
-    <div className="home-page">
-      {/* Navigation Bar */}
-      <NavBar
-        onNavigate={handleNavigate}
-        onSearchToggle={handleSearchToggle}
-      />
-
-      {/* Main Content */}
-      <main className="home-content">
-        {/* Featured Hero Section */}
+    <FocusContext.Provider value={focusKey}>
+      <div ref={ref} className="home-page">
+        {/* Hero is fixed — spacer reserves its space in the scroll flow */}
         <FeaturedHero
-          movie={featuredContent}
-          onPlay={handlePlayMovie}
-          onMoreInfo={handleMoreInfo}
+          defaultMovie={featuredContent}
+          onPlay={(movie) => console.log('Play:', movie.title)}
+          onMoreInfo={(movie) => console.log('More info:', movie.title)}
+          onRegisterFocus={onRegisterFocus}
         />
+        <div className="hero-spacer" aria-hidden="true" />
 
         {/* Movie Rows */}
-        <div className="home-rows">
+        <div className="rows-container">
           {categories.map((category) => (
             <MovieRow
               key={category.id}
-              id={category.id}
+              id={`row-${category.id}`}
               title={category.title}
               movies={category.items}
-              onSelectMovie={handleSelectMovie}
-              onMovieHover={handleMovieHover}
+              onMovieSelect={handleMovieSelect}
+              onFocus={onRowFocus}
+              onRegisterFocus={onRegisterFocus}
             />
           ))}
         </div>
-      </main>
-
-      {/* Hover Preview (shown when hovering a movie) */}
-      {hoveredMovie && (
-        <div className="hover-preview" aria-hidden="true">
-          <div className="hover-preview-content">
-            <h4>{hoveredMovie.title}</h4>
-            <p>{hoveredMovie.year} • {hoveredMovie.rating}</p>
-            {hoveredMovie.match && (
-              <p className="match-text">{hoveredMovie.match}% Match</p>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
+    </FocusContext.Provider>
   );
 }
 

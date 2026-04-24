@@ -1,20 +1,13 @@
 import React from 'react';
-import Focusable from './Focusable';
+import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import './Button.css';
 
 /**
- * Button Component
+ * Button Component - TV-Optimized
  * 
- * A focusable button component designed for TV navigation.
- * Supports primary and secondary variants.
- * 
- * @param {string} id - Unique identifier for the button
- * @param {string} variant - Button variant: 'primary' or 'secondary'
- * @param {string} size - Button size: 'small', 'medium', or 'large'
- * @param {ReactNode} children - Button content
- * @param {Function} onSelect - Callback when button is selected
- * @param {boolean} disabled - Whether the button is disabled
- * @param {string} className - Additional CSS classes
+ * TV-Specific Features:
+ * - Uses plain useFocusable for reliable focus behavior
+ * - Focus state: 6px red ring + scale(1.05) per design system
  */
 function Button({
   id,
@@ -24,19 +17,27 @@ function Button({
   onSelect,
   disabled = false,
   className = '',
-  ...rest
+  style,
 }) {
+  const { ref, focused } = useFocusable({
+    focusKey: id,
+    onEnterPress: () => {
+      if (!disabled && onSelect) {
+        onSelect();
+      }
+    },
+  });
+
   return (
-    <Focusable
-      id={id}
-      role="button"
-      onSelect={onSelect}
-      disabled={disabled}
-      className={`button button-${variant} button-${size} ${className}`}
-      {...rest}
+    <div
+      ref={ref}
+      className={`button button-${variant} button-${size} ${focused ? 'focused' : ''} ${disabled ? 'button-disabled' : ''} ${className}`}
+      style={style}
     >
-      <span className="button-content">{children}</span>
-    </Focusable>
+      <div className="button-content">
+        {children}
+      </div>
+    </div>
   );
 }
 

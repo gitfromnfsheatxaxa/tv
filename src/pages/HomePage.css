@@ -1,65 +1,35 @@
-/* HomePage Styles */
-
+/* HomePage */
 .home-page {
-  position: relative;
-  min-height: 100vh;
-  background-color: var(--color-bg-primary);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.10) transparent;
 }
 
-/* Main Content */
-.home-content {
-  position: relative;
-  z-index: 1;
-  padding-top: 70px; /* Offset for fixed navbar */
+.home-page::-webkit-scrollbar { width: 4px; }
+.home-page::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.10);
+  border-radius: 2px;
 }
 
-/* Movie Rows Container */
-.home-rows {
-  padding-bottom: var(--space-8);
+/* Spacer mirrors the fixed hero exactly:
+   top:16px + height:44vh + 16px gap before rows.
+   Must match .featured-hero dimensions in FeaturedHero.css. */
+.hero-spacer {
+  /* Matches .featured-hero exactly: top:0, height:44vh, min/max */
+  height: 44vh;
+  min-height: 300px;
+  max-height: 500px;
+  flex-shrink: 0;
 }
 
-/* Hover Preview */
-.hover-preview {
-  position: fixed;
-  bottom: var(--space-6);
-  right: var(--space-6);
-  z-index: 50;
-  background-color: var(--color-bg-secondary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  min-width: 250px;
-  box-shadow: var(--shadow-xl);
-  border: 1px solid var(--color-bg-tertiary);
-  animation: fadeIn var(--transition-fast) ease;
-}
-
-.hover-preview-content h4 {
-  font-size: var(--text-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-1);
-}
-
-.hover-preview-content p {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  margin-bottom: var(--space-1);
-}
-
-.hover-preview-content .match-text {
-  color: var(--color-success);
-  font-weight: var(--font-semibold);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .hover-preview {
-    position: static;
-    margin: var(--space-4);
-    min-width: auto;
-  }
-
-  .home-rows {
-    padding-bottom: var(--space-6);
-  }
+/* Rows sit below the fixed hero, aligned with it */
+.rows-container {
+  padding: 8px 0 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
 }
