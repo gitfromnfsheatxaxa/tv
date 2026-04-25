@@ -5,7 +5,7 @@ import FeaturedHero from '../components/content/FeaturedHero';
 import { getCategories, getFeaturedContent } from '../services/mockDataService';
 import './HomePage.css';
 
-function HomePage({ onRegisterFocus }) {
+function HomePage({ onRegisterFocus, onMovieSelect }) {
   const { ref, focusKey } = useFocusable({ 
     focusKey: 'HOME-CONTENT',
     trackChildren: true,
@@ -15,8 +15,10 @@ function HomePage({ onRegisterFocus }) {
   const featuredContent = getFeaturedContent();
 
   const handleMovieSelect = React.useCallback((movie) => {
-    console.log('Movie selected:', movie.title);
-  }, []);
+    if (onMovieSelect) {
+      onMovieSelect(movie);
+    }
+  }, [onMovieSelect]);
 
   const onRowFocus = React.useCallback(
     ({ y }) => {
@@ -31,8 +33,8 @@ function HomePage({ onRegisterFocus }) {
         {/* Hero is fixed — spacer reserves its space in the scroll flow */}
         <FeaturedHero
           defaultMovie={featuredContent}
-          onPlay={(movie) => console.log('Play:', movie.title)}
-          onMoreInfo={(movie) => console.log('More info:', movie.title)}
+          onPlay={handleMovieSelect}
+          onMoreInfo={handleMovieSelect}
           onRegisterFocus={onRegisterFocus}
         />
         <div className="hero-spacer" aria-hidden="true" />

@@ -108,6 +108,13 @@ function FeaturedButton({ id, variant, size, children, onSelect, onRegisterFocus
     focusKey: id,
     onEnterPress: () => { if (onSelect) onSelect(); },
     onFocus: () => { if (onRegisterFocus) onRegisterFocus(id); },
+    // FIX: Focus-loss prevention (Layer 1 — prevent).
+    // The hero is the topmost content element. Pressing UP here finds nothing,
+    // which would set Norigin's currentFocusKey=null and kill all navigation.
+    onArrowPress: (direction) => {
+      if (direction === 'up') return false;
+      return true;
+    },
   });
 
   return (

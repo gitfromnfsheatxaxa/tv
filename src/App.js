@@ -1,5 +1,5 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { useFocusable, FocusContext, setFocus } from '@noriginmedia/norigin-spatial-navigation';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
+import { useFocusable, FocusContext, setFocus, getCurrentFocusKey } from '@noriginmedia/norigin-spatial-navigation';
 import { CatalogProvider } from './contexts/CatalogContext';
 import HomePage from './pages/HomePage';
 import './styles/App.css';
@@ -7,11 +7,13 @@ import './styles/App.css';
 // Import components
 import SearchModal from './components/common/SearchModal';
 import ProfileModal from './components/common/ProfileModal';
+import MovieDetailModal from './components/common/MovieDetailModal';
 import { searchContent } from './services/mockDataService';
 import MoviesPage from './pages/MoviesPage';
 import SeriesPage from './pages/SeriesPage';
 import NewPopularPage from './pages/NewPopularPage';
 import MyListPage from './pages/MyListPage';
+import VideoPlayer from './pages/VideoPlayer';
 
 /**
  * Main App Component
@@ -34,59 +36,122 @@ function AppContent() {
   const [currentPage, setCurrentPage] = useState('home');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [isMovieDetailOpen, setIsMovieDetailOpen] = useState(false);
   const [lastFocusKey, setLastFocusKey] = useState('menu-home');
+  const [lastFocusedPage, setLastFocusedPage] = useState('home');
+  const [preModalFocusKey, setPreModalFocusKey] = useState(null);
+  // FIX (Layer 2 — recover): always holds the last key confirmed valid by getCurrentFocusKey().
+  // Menu keys are used on page change so the ref never points to an unmounted card.
+  const lastValidFocusRef = useRef('menu-home');
 
   const handlePageChange = useCallback((page) => {
+    setLastFocusedPage(currentPage);
     setCurrentPage(page);
-  }, []);
+    // FIX: Reset recovery ref to a menu key that is guaranteed to be mounted on the new page.
+    // Without this, lastValidFocusRef still holds a card key (e.g. CARD-row-trending-movie-1).
+    // When the old page unmounts those cards are gone; the rAF guard would call setFocus()
+    // on a non-existent key, Norigin silently fails, and focus stays null permanently.
+    lastValidFocusRef.current = `menu-${page}`;
+    setTimeout(() => {
+      setFocus(`menu-${page}`);
+    }, 100);
+  }, [currentPage]);
 
   const handleSearch = useCallback((query) => {
     const results = searchContent(query);
+    console.log('Search results:', results);
   }, []);
 
   const handleSignOut = useCallback(() => {
     console.log('Signing out...');
   }, []);
 
+  // Handle movie selection - opens detail modal
+  const handleMovieSelect = useCallback((movie) => {
+    // FIX: Save exact Norigin focus key before modal opens so it can be restored on close.
+    // Previous code reconstructed the key (CARD-row-trending-0) which was wrong — movie IDs
+    // are strings like 'movie-1', making the real key CARD-row-trending-movie-1.
+    setPreModalFocusKey(getCurrentFocusKey());
+    setSelectedMovie(movie);
+    setIsMovieDetailOpen(true);
+  }, []);
+
+  // Handle playing a movie - navigate to video player
+  const handlePlayMovie = useCallback((movie) => {
+    console.log('Playing:', movie.title);
+    // Close detail modal and navigate to player page
+    setIsMovieDetailOpen(false);
+    setSelectedMovie(movie);
+    setCurrentPage('player');
+    // Store the page we came from for back navigation
+    setLastFocusedPage('detail');
+  }, []);
+
+  // Close movie detail modal and restore focus to the card that opened it
+  const handleCloseMovieDetail = useCallback(() => {
+    setIsMovieDetailOpen(false);
+    if (preModalFocusKey) {
+      setTimeout(() => setFocus(preModalFocusKey), 100);
+    }
+  }, [preModalFocusKey]);
+
+  // Handle back from video player
+  const handlePlayerBack = useCallback(() => {
+    setCurrentPage(lastFocusedPage === 'detail' ? 'home' : lastFocusedPage);
+    setSelectedMovie(null);
+    setTimeout(() => {
+      setFocus(`menu-${lastFocusedPage}`);
+    }, 100);
+  }, [lastFocusedPage]);
+
   const renderPage = () => {
     switch (currentPage) {
       case 'movies':
-        return <MoviesPage onRegisterFocus={setLastFocusKey} />;
+        return <MoviesPage onRegisterFocus={setLastFocusKey} onMovieSelect={handleMovieSelect} />;
       case 'series':
-        return <SeriesPage onRegisterFocus={setLastFocusKey} />;
+        return <SeriesPage onRegisterFocus={setLastFocusKey} onMovieSelect={handleMovieSelect} />;
       case 'new':
-        return <NewPopularPage onRegisterFocus={setLastFocusKey} />;
+        return <NewPopularPage onRegisterFocus={setLastFocusKey} onMovieSelect={handleMovieSelect} />;
       case 'mylist':
-        return <MyListPage onRegisterFocus={setLastFocusKey} />;
+        return <MyListPage onRegisterFocus={setLastFocusKey} onMovieSelect={handleMovieSelect} />;
+      case 'player':
+        return <VideoPlayer movie={selectedMovie} onBack={handlePlayerBack} />;
       default:
-        return <HomePage onRegisterFocus={setLastFocusKey} />;
+        return <HomePage onRegisterFocus={setLastFocusKey} onMovieSelect={handleMovieSelect} />;
     }
   };
 
-  // GLOBAL FOCUS RESTORATION SAFETY NET
-  // This runs continuously to detect and restore focus if it becomes lost
+  // FIX (Layer 2 — recover): event-driven focus guard.
+  // Replaces the broken polling safety net (setInterval every 200ms) which checked
+  // document.activeElement.classList.contains('focused') — that class is managed by React
+  // state, not the DOM, so the check was always true and setFocus fired constantly,
+  // overriding every navigation the user attempted.
+  //
+  // This version fires only on actual keypresses. requestAnimationFrame defers until after
+  // Norigin has synchronously processed the key event and updated currentFocusKey.
+  // - If a valid key exists  → save it to lastValidFocusRef (keep ref fresh)
+  // - If key is null (escaped) → restore from lastValidFocusRef (guaranteed mounted)
   useEffect(() => {
-    const checkInterval = setInterval(() => {
-      const activeElement = document.activeElement;
-      
-      // If focus is on body or lost (no element has focus)
-      if (!activeElement || activeElement === document.body || !activeElement.classList.contains('focused')) {
-        // Restore to last known focused element
-        if (lastFocusKey) {
-          console.log('[Global Safety Net] Restoring focus to:', lastFocusKey);
-          setFocus(lastFocusKey);
+    const onKeyDown = () => {
+      requestAnimationFrame(() => {
+        const key = getCurrentFocusKey();
+        if (key) {
+          lastValidFocusRef.current = key;
+        } else if (lastValidFocusRef.current) {
+          setFocus(lastValidFocusRef.current);
         }
-      }
-    }, 200);
-
-    return () => clearInterval(checkInterval);
-  }, [lastFocusKey]);
+      });
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   // Set initial focus when app mounts
   useEffect(() => {
     const timer = setTimeout(() => {
+      lastValidFocusRef.current = 'menu-home';
       setFocus('menu-home');
-      console.log('Initial focus set to menu-home');
     }, 150);
     return () => clearTimeout(timer);
   }, []);
@@ -111,19 +176,35 @@ function AppContent() {
       {/* Search Modal */}
       <SearchModal 
         isOpen={isSearchOpen} 
-        onClose={() => setIsSearchOpen(false)}
+        onClose={() => {
+          setIsSearchOpen(false);
+          // Restore focus to search button
+          setTimeout(() => setFocus('menu-search'), 100);
+        }}
         onSearch={handleSearch}
       />
 
       {/* Profile Modal */}
       <ProfileModal 
         isOpen={isProfileOpen} 
-        onClose={() => setIsProfileOpen(false)}
+        onClose={() => {
+          setIsProfileOpen(false);
+          // Restore focus to profile button
+          setTimeout(() => setFocus('menu-profile'), 100);
+        }}
         onSignOut={handleSignOut}
         userProfile={{
           name: 'John Doe',
           email: 'john@example.com',
         }}
+      />
+
+      {/* Movie Detail Modal */}
+      <MovieDetailModal
+        isOpen={isMovieDetailOpen}
+        onClose={handleCloseMovieDetail}
+        movie={selectedMovie}
+        onPlay={handlePlayMovie}
       />
     </div>
   );
@@ -200,16 +281,18 @@ function SideMenu({ focusKey, currentPage, onNavigate, onOpenSearch, onOpenProfi
 function SideMenuItem({ id, label, icon, isActive, onNavigate, onRegisterFocus }) {
   const { ref, focused } = useFocusable({
     focusKey: id,
-    onEnterPress: () => {
-      if (onNavigate) {
-        onNavigate();
-      }
-    },
-    onFocus: () => {
-      // Register this element as focused for global restoration
-      if (onRegisterFocus) {
-        onRegisterFocus(id);
-      }
+    onEnterPress: () => { if (onNavigate) onNavigate(); },
+    onFocus: () => { if (onRegisterFocus) onRegisterFocus(id); },
+    // FIX: Focus-loss prevention (Layer 1 — prevent).
+    // LEFT: sidebar is the leftmost element of the entire app — nothing exists to its left.
+    // UP at 'menu-home': topmost sidebar item, nothing above it.
+    // DOWN at 'menu-profile': bottommost sidebar item, nothing below it.
+    // Without these guards Norigin nulls currentFocusKey and navigation dies.
+    onArrowPress: (direction) => {
+      if (direction === 'left') return false;
+      if (direction === 'up' && id === 'menu-home') return false;
+      if (direction === 'down' && id === 'menu-profile') return false;
+      return true;
     },
   });
 

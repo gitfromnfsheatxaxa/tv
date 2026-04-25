@@ -3,11 +3,20 @@ import { useFocusable, FocusContext } from '@noriginmedia/norigin-spatial-naviga
 import './MovieRow.css';
 import MovieCard from './MovieCard';
 
-function MovieRow({ id, title, movies, onMovieSelect, onFocus: onRowFocus, onRegisterFocus }) {
-  // hasFocusedChild → drives .content-row.focused CSS (glows, title highlight, arrows)
+function MovieRow({
+  id,
+  title,
+  movies,
+  onMovieSelect,
+  onFocus: onRowFocus,
+  onRegisterFocus,
+}) {
   const { ref, focusKey, hasFocusedChild } = useFocusable({
     focusKey: id,
     trackChildren: true,
+    // FIX: When user presses DOWN then UP to return to this row, Norigin restores
+    // the exact card that was focused last instead of always jumping to the first card.
+    saveLastFocusedChild: true,
     onFocus: (layout) => {
       if (onRowFocus) onRowFocus({ y: layout.y });
       if (onRegisterFocus) onRegisterFocus(id);
@@ -16,13 +25,11 @@ function MovieRow({ id, title, movies, onMovieSelect, onFocus: onRowFocus, onReg
 
   const scrollRef = useRef(null);
 
-  // Scroll so focused card sits ~60 px from the wrapper's left visible edge
-  const onCardFocus = useCallback((layout) => {
-    const wrapper = scrollRef.current;
-    if (!wrapper) return;
-    const { left: wLeft } = wrapper.getBoundingClientRect();
-    const target = wrapper.scrollLeft + (layout.x - wLeft) - 60;
-    wrapper.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+  // FIX: Norigin's layout.x is already relative to the FocusContext container (this row's ref).
+  // Previous code used getBoundingClientRect() + scrollLeft offset which drifted on every scroll.
+  // The demo uses x directly — that is the only correct approach.
+  const onCardFocus = useCallback(({ x }) => {
+    scrollRef.current?.scrollTo({ left: x, behavior: 'smooth' });
   }, []);
 
   const onCardPress = useCallback((movie) => {
@@ -52,7 +59,6 @@ function MovieRow({ id, title, movies, onMovieSelect, onFocus: onRowFocus, onReg
     <FocusContext.Provider value={focusKey}>
       <div ref={ref} className={`content-row${hasFocusedChild ? ' focused' : ''}`}>
 
-        {/* Row header — aligns with card start (padding matches .row-scrolling-content) */}
         <div className="row-header">
           <h3 className="row-title">{title}</h3>
           <div className="row-nav">
@@ -78,6 +84,7 @@ function MovieRow({ id, title, movies, onMovieSelect, onFocus: onRowFocus, onReg
                 movie={movie}
                 index={index}
                 rowId={id}
+                totalCardsInRow={movies.length}
                 onEnterPress={onCardPress}
                 onFocus={onCardFocus}
               />

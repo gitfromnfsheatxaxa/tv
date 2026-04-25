@@ -7,7 +7,7 @@
 
 .content-row {
   position: relative;
-  top: 5rem;
+  max-width: 1980px;
   /* Vertical space between rows is controlled by rows-container gap */
 }
 

@@ -3,19 +3,34 @@ import { useFocusable, setFocus } from '@noriginmedia/norigin-spatial-navigation
 import { useCatalog } from '../../contexts/CatalogContext';
 import './MovieCard.css';
 
-function MovieCard({ movie, index, onEnterPress, onFocus: onCardFocusProp, rowId }) {
+function MovieCard({ movie, index, onEnterPress, onFocus: onCardFocusProp, rowId, totalCardsInRow }) {
   const [hovered, setHovered] = useState(false);
   const { updateFocusedMovie } = useCatalog();
 
   const stableId = movie.id ? String(movie.id) : String(index);
   const focusKey = `CARD-${rowId || 'row'}-${stableId}`;
 
+  const handleOnEnterPress = useCallback(() => {
+    if (onEnterPress) onEnterPress(movie);
+  }, [movie, onEnterPress]);
+
+  const handleOnFocus = useCallback((layout) => {
+    updateFocusedMovie(movie);
+    if (onCardFocusProp) onCardFocusProp(layout);
+  }, [movie, onCardFocusProp, updateFocusedMovie]);
+
   const { ref, focused } = useFocusable({
     focusKey,
-    onEnterPress: () => { if (onEnterPress) onEnterPress(movie); },
-    onFocus: (layout) => {
-      updateFocusedMovie(movie);
-      if (onCardFocusProp) onCardFocusProp(layout);
+    onEnterPress: handleOnEnterPress,
+    onFocus: handleOnFocus,
+    // FIX: Focus-loss prevention (Layer 1 — prevent).
+    // When Norigin finds no focusable element in a direction it sets currentFocusKey=null,
+    // killing all navigation until page refresh. Returning false blocks the attempt entirely.
+    // LEFT at index 0 and RIGHT at last index are dead ends — nothing exists there.
+    onArrowPress: (direction) => {
+      if (direction === 'left' && index === 0) return false;
+      if (direction === 'right' && index === totalCardsInRow - 1) return false;
+      return true;
     },
   });
 
@@ -36,6 +51,10 @@ function MovieCard({ movie, index, onEnterPress, onFocus: onCardFocusProp, rowId
       onClick={handleClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      data-focus-key={focusKey}
+      data-row-id={rowId}
+      data-card-index={index}
+      data-total-cards={totalCardsInRow}
     >
       {/* ── Poster ── */}
       <div

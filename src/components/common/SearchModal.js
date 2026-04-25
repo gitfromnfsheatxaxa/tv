@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
-import { useFocusable, FocusContext } from '@noriginmedia/norigin-spatial-navigation';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useFocusable, FocusContext, setFocus } from '@noriginmedia/norigin-spatial-navigation';
+import { searchContent } from '../../services/mockDataService';
 import './Modal.css';
 
 /**
@@ -30,6 +31,36 @@ const SPECIAL_KEYS = [
 function SearchModal({ isOpen, onClose, onSearch }) {
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Debounced search
+  useEffect(() => {
+    if (!isOpen) {
+      setQuery('');
+      setSearchResults(null);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      if (query.trim()) {
+        setIsSearching(true);
+        try {
+          const results = searchContent(query);
+          setSearchResults({ all: results });
+        } catch (error) {
+          console.error('Search error:', error);
+          setSearchResults({ all: [] });
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults(null);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query, isOpen]);
+
   const { ref: modalRef, focusKey: modalFocusKey, focusSelf } = useFocusable({
     focusKey: 'MODAL-SEARCH',
     trackChildren: true,
@@ -37,7 +68,7 @@ function SearchModal({ isOpen, onClose, onSearch }) {
   });
 
   // Direct focus into modal as soon as it opens
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) focusSelf();
   }, [isOpen, focusSelf]);
 
@@ -55,13 +86,21 @@ function SearchModal({ isOpen, onClose, onSearch }) {
   }, []);
 
   const handleSubmit = useCallback(() => {
-    if (query.trim() && onSearch) {
-      onSearch(query);
+    if (query.trim()) {
+      if (onSearch) {
+        onSearch(query);
+      }
+      // Focus first result if available
+      if (searchResults && searchResults.all.length > 0) {
+        setTimeout(() => {
+          setFocus('search-result-0');
+        }, 100);
+      }
     }
-  }, [query, onSearch]);
+  }, [query, onSearch, searchResults]);
 
   // Handle physical keyboard input for desktop testing
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if (!isOpen) return;
 
@@ -111,14 +150,34 @@ function SearchModal({ isOpen, onClose, onSearch }) {
           </div>
 
           {/* Search Results */}
-          {searchResults && (
+          {isSearching && (
+            <div className="search-loading">
+              <span className="loading-spinner">...</span>
+              <span>Searching...</span>
+            </div>
+          )}
+          {searchResults && !isSearching && (
             <div className="search-results">
               <h3>Results ({searchResults.all.length})</h3>
-              <div className="search-results-grid">
-                {searchResults.all.map((item) => (
-                  <SearchResultItem key={item.id} item={item} onSelect={onClose} />
-                ))}
-              </div>
+              {searchResults.all.length === 0 ? (
+                <div className="search-no-results">
+                  <p>No results found for "{query}"</p>
+                </div>
+              ) : (
+                <div className="search-results-grid">
+                  {searchResults.all.map((item, index) => (
+                    <SearchResultItem 
+                      key={item.id} 
+                      index={index}
+                      item={item} 
+                      onSelect={() => {
+                        onClose();
+                        if (onSearch) onSearch(query);
+                      }} 
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -182,9 +241,9 @@ function KeyboardKey({ char, onClick, width = 1, variant = 'default', disabled =
   );
 }
 
-function SearchResultItem({ item, onSelect }) {
+function SearchResultItem({ item, index, onSelect }) {
   const { ref, focused } = useFocusable({
-    focusKey: `search-result-${item.id}`,
+    focusKey: `search-result-${index}`,
     onEnterPress: onSelect,
   });
 
