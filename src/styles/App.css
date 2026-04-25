@@ -10,7 +10,9 @@
   flex-direction: row;
   overflow: hidden;
 }
-
+.app-container.hide-navbar .side-menu {
+  display: none !important;
+}
 /**
  * Side Menu - Collapsible Navigation
  * 

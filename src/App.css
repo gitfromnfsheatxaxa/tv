@@ -23,6 +23,10 @@
   font-size: calc(10px + 2vmin);
   color: white;
 }
+/* Hide sidebar when hideNavbar prop is active */
+.app-container.hide-navbar .side-menu {
+  display: none !important;
+}
 
 .App-link {
   color: #61dafb;
